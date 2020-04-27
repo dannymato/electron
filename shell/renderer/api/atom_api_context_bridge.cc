@@ -142,13 +142,8 @@ v8::MaybeLocal<v8::Value> PassValueToOtherContext(
     v8::Local<v8::Context> source_context,
     v8::Local<v8::Context> destination_context,
     v8::Local<v8::Value> value,
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
     context_bridge::RenderFramePersistenceStore* store,
-=======
-    context_bridge::RenderFrameFunctionStore* store,
-    context_bridge::ObjectCache* object_cache,
     bool support_dynamic_properties,
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
     int recursion_depth) {
   if (recursion_depth >= kMaxRecursion) {
     v8::Context::Scope source_scope(source_context);
@@ -208,17 +203,10 @@ v8::MaybeLocal<v8::Value> PassValueToOtherContext(
              v8::Global<v8::Context> global_destination_context,
              context_bridge::RenderFramePersistenceStore* store,
              v8::Local<v8::Value> result) {
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
-            auto val = PassValueToOtherContext(
-                global_source_context.Get(isolate),
-                global_destination_context.Get(isolate), result, store, 0);
-=======
-            context_bridge::ObjectCache object_cache;
             auto val =
                 PassValueToOtherContext(global_source_context.Get(isolate),
                                         global_destination_context.Get(isolate),
-                                        result, store, &object_cache, false, 0);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
+                                        result, store, false, 0);
             if (!val.IsEmpty())
               proxied_promise->Resolve(val.ToLocalChecked());
             delete proxied_promise;
@@ -234,17 +222,10 @@ v8::MaybeLocal<v8::Value> PassValueToOtherContext(
              v8::Global<v8::Context> global_destination_context,
              context_bridge::RenderFramePersistenceStore* store,
              v8::Local<v8::Value> result) {
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
-            auto val = PassValueToOtherContext(
-                global_source_context.Get(isolate),
-                global_destination_context.Get(isolate), result, store, 0);
-=======
-            context_bridge::ObjectCache object_cache;
             auto val =
                 PassValueToOtherContext(global_source_context.Get(isolate),
                                         global_destination_context.Get(isolate),
-                                        result, store, &object_cache, false, 0);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
+                                        result, store, false, 0);
             if (!val.IsEmpty())
               proxied_promise->Reject(val.ToLocalChecked());
             delete proxied_promise;
@@ -289,13 +270,8 @@ v8::MaybeLocal<v8::Value> PassValueToOtherContext(
       for (size_t i = 0; i < length; i++) {
         auto value_for_array = PassValueToOtherContext(
             source_context, destination_context,
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
             arr->Get(source_context, i).ToLocalChecked(), store,
-            recursion_depth + 1);
-=======
-            arr->Get(source_context, i).ToLocalChecked(), store, object_cache,
             support_dynamic_properties, recursion_depth + 1);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
         if (value_for_array.IsEmpty())
           return v8::MaybeLocal<v8::Value>();
 
@@ -313,15 +289,9 @@ v8::MaybeLocal<v8::Value> PassValueToOtherContext(
   // Proxy all objects
   if (IsPlainObject(value)) {
     auto object_value = v8::Local<v8::Object>::Cast(value);
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
-    auto passed_value =
-        CreateProxyForAPI(object_value, source_context, destination_context,
-                          store, recursion_depth + 1);
-=======
     auto passed_value = CreateProxyForAPI(
-        object_value, source_context, destination_context, store, object_cache,
+        object_value, source_context, destination_context, store,
         support_dynamic_properties, recursion_depth + 1);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
     if (passed_value.IsEmpty())
       return v8::MaybeLocal<v8::Value>();
     return v8::MaybeLocal<v8::Value>(passed_value.ToLocalChecked());
@@ -368,13 +338,9 @@ v8::Local<v8::Value> ProxyFunctionWrapper(
     args->GetRemaining(&original_args);
 
     for (auto value : original_args) {
-      auto arg = PassValueToOtherContext(calling_context, func_owning_context,
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
-                                         value, store, 0);
-=======
-                                         value, store, &object_cache,
-                                         support_dynamic_properties, 0);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
+      auto arg =
+          PassValueToOtherContext(calling_context, func_owning_context, value,
+                                  store, support_dynamic_properties, 0);
       if (arg.IsEmpty())
         return v8::Undefined(args->isolate());
       proxied_args.push_back(arg.ToLocalChecked());
@@ -412,14 +378,9 @@ v8::Local<v8::Value> ProxyFunctionWrapper(
     if (maybe_return_value.IsEmpty())
       return v8::Undefined(args->isolate());
 
-    auto ret =
-        PassValueToOtherContext(func_owning_context, calling_context,
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
-                                maybe_return_value.ToLocalChecked(), store, 0);
-=======
-                                maybe_return_value.ToLocalChecked(), store,
-                                &object_cache, support_dynamic_properties, 0);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
+    auto ret = PassValueToOtherContext(func_owning_context, calling_context,
+                                       maybe_return_value.ToLocalChecked(),
+                                       store, support_dynamic_properties, 0);
     if (ret.IsEmpty())
       return v8::Undefined(args->isolate());
     return ret.ToLocalChecked();
@@ -430,13 +391,8 @@ v8::MaybeLocal<v8::Object> CreateProxyForAPI(
     const v8::Local<v8::Object>& api_object,
     const v8::Local<v8::Context>& source_context,
     const v8::Local<v8::Context>& destination_context,
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
     context_bridge::RenderFramePersistenceStore* store,
-=======
-    context_bridge::RenderFrameFunctionStore* store,
-    context_bridge::ObjectCache* object_cache,
     bool support_dynamic_properties,
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
     int recursion_depth) {
   mate::Dictionary api(source_context->GetIsolate(), api_object);
   v8::Context::Scope destination_context_scope(destination_context);
@@ -468,7 +424,7 @@ v8::MaybeLocal<v8::Object> CreateProxyForAPI(
         v8::Local<v8::Value> desc_value;
         if (!maybe_desc.ToLocal(&desc_value) || !desc_value->IsObject())
           continue;
-        gin_helper::Dictionary desc(api.isolate(), desc_value.As<v8::Object>());
+        mate::Dictionary desc(api.isolate(), desc_value.As<v8::Object>());
         if (desc.Has("get") || desc.Has("set")) {
           v8::Local<v8::Value> getter;
           v8::Local<v8::Value> setter;
@@ -506,15 +462,9 @@ v8::MaybeLocal<v8::Object> CreateProxyForAPI(
       if (!api.Get(key_str, &value))
         continue;
 
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
-      auto passed_value =
-          PassValueToOtherContext(source_context, destination_context, value,
-                                  store, recursion_depth + 1);
-=======
       auto passed_value = PassValueToOtherContext(
-          source_context, destination_context, value, store, object_cache,
+          source_context, destination_context, value, store,
           support_dynamic_properties, recursion_depth + 1);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
       if (passed_value.IsEmpty())
         return v8::MaybeLocal<v8::Object>();
       proxy.Set(key_str, passed_value.ToLocalChecked());
@@ -574,13 +524,8 @@ void ExposeAPIInMainWorld(const std::string& key,
 
   v8::Context::Scope main_context_scope(main_context);
   {
-    v8::MaybeLocal<v8::Object> maybe_proxy =
-<<<<<<< HEAD:shell/renderer/api/atom_api_context_bridge.cc
-        CreateProxyForAPI(api_object, isolated_context, main_context, store, 0);
-=======
-        CreateProxyForAPI(api_object, isolated_context, main_context, store,
-                          &object_cache, false, 0);
->>>>>>> 58db2957e... refactor: port window.open and window.opener to use ctx bridge instead of hole punching (#23235):shell/renderer/api/electron_api_context_bridge.cc
+    v8::MaybeLocal<v8::Object> maybe_proxy = CreateProxyForAPI(
+        api_object, isolated_context, main_context, store, false, 0);
     if (maybe_proxy.IsEmpty())
       return;
     auto proxy = maybe_proxy.ToLocalChecked();
@@ -591,9 +536,9 @@ void ExposeAPIInMainWorld(const std::string& key,
   }
 }
 
-gin_helper::Dictionary TraceKeyPath(const gin_helper::Dictionary& start,
-                                    const std::vector<std::string>& key_path) {
-  gin_helper::Dictionary current = start;
+mate::Dictionary TraceKeyPath(const mate::Dictionary& start,
+                              const std::vector<std::string>& key_path) {
+  mate::Dictionary current = start;
   for (size_t i = 0; i < key_path.size() - 1; i++) {
     CHECK(current.Get(key_path[i], &current));
   }
@@ -614,11 +559,10 @@ void OverrideGlobalValueFromIsolatedWorld(
   auto* frame = render_frame->GetWebFrame();
   CHECK(frame);
   v8::Local<v8::Context> main_context = frame->MainWorldScriptContext();
-  gin_helper::Dictionary global(main_context->GetIsolate(),
-                                main_context->Global());
+  mate::Dictionary global(main_context->GetIsolate(), main_context->Global());
 
   const std::string final_key = key_path[key_path.size() - 1];
-  gin_helper::Dictionary target_object = TraceKeyPath(global, key_path);
+  mate::Dictionary target_object = TraceKeyPath(global, key_path);
 
   {
     v8::Context::Scope main_context_scope(main_context);
@@ -637,7 +581,7 @@ bool OverrideGlobalPropertyFromIsolatedWorld(
     const std::vector<std::string>& key_path,
     v8::Local<v8::Object> getter,
     v8::Local<v8::Value> setter,
-    gin_helper::Arguments* args) {
+    mate::Arguments* args) {
   if (key_path.size() == 0)
     return false;
 
@@ -648,8 +592,7 @@ bool OverrideGlobalPropertyFromIsolatedWorld(
   auto* frame = render_frame->GetWebFrame();
   CHECK(frame);
   v8::Local<v8::Context> main_context = frame->MainWorldScriptContext();
-  gin_helper::Dictionary global(main_context->GetIsolate(),
-                                main_context->Global());
+  mate::Dictionary global(main_context->GetIsolate(), main_context->Global());
 
   const std::string final_key = key_path[key_path.size() - 1];
   v8::Local<v8::Object> target_object =
@@ -676,7 +619,7 @@ bool OverrideGlobalPropertyFromIsolatedWorld(
     }
 
     v8::PropertyDescriptor desc(getter_proxy, setter_proxy);
-    bool success = IsTrue(target_object->DefineProperty(
+    bool success = mate::internal::IsTrue(target_object->DefineProperty(
         main_context, gin::StringToV8(args->isolate(), final_key), desc));
     DCHECK(success);
     return success;
