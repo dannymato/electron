@@ -41,7 +41,7 @@ index 2bdac964cb03cad4b9637c3cea56a8e5f650056f..4b1c72a5f67ab1882cbb61b4c52fc50e
  
  Environment::~Environment() {
 diff --git a/src/node.cc b/src/node.cc
-index fee485f86e17f1987e140aea874656e5048cdbfe..7dda6b39c37cdf96f59a34ca6bc75ea2c7fde060 100644
+index fee485f86e17f1987e140aea874656e5048cdbfe..b7fb63c5332eb8da14a281d06b74c2b78f1d36ed 100644
 --- a/src/node.cc
 +++ b/src/node.cc
 @@ -27,6 +27,7 @@
@@ -52,31 +52,18 @@ index fee485f86e17f1987e140aea874656e5048cdbfe..7dda6b39c37cdf96f59a34ca6bc75ea2
  #include "node_internals.h"
  #include "node_main_instance.h"
  #include "node_metadata.h"
-@@ -128,6 +129,9 @@ using v8::Undefined;
- using v8::V8;
- using v8::Value;
- 
-+bool g_standalone_mode = true;
-+bool g_upstream_node_mode = true;
-+
- namespace per_process {
- 
- // node_revert.h
-@@ -343,6 +347,13 @@ MaybeLocal<Value> Environment::RunBootstrapping() {
+@@ -343,6 +344,10 @@ MaybeLocal<Value> Environment::RunBootstrapping() {
  
    CHECK(!has_run_bootstrapping_code());
  
 +  if (g_standalone_mode) {
 +    isolate()->AddMessageListener(errors::PerIsolateMessageListener);
 +  }
-+  if (g_upstream_node_mode) {
-+    isolate()->SetFatalErrorHandler(OnFatalError);
-+  }
 +
    if (BootstrapInternalLoaders().IsEmpty()) {
      return MaybeLocal<Value>();
    }
-@@ -726,7 +737,9 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
+@@ -726,7 +731,9 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
    binding::RegisterBuiltinModules();
  
    // Make inherited handles noninheritable.
@@ -87,7 +74,7 @@ index fee485f86e17f1987e140aea874656e5048cdbfe..7dda6b39c37cdf96f59a34ca6bc75ea2
  
  #ifdef NODE_REPORT
    // Cache the original command line to be
-@@ -762,6 +775,8 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
+@@ -762,6 +769,8 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
      if (exit_code != 0) return exit_code;
    }
  #endif
@@ -96,7 +83,7 @@ index fee485f86e17f1987e140aea874656e5048cdbfe..7dda6b39c37cdf96f59a34ca6bc75ea2
  
    const int exit_code = ProcessGlobalArgs(argv,
                                            exec_argv,
-@@ -806,6 +821,7 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
+@@ -806,6 +815,7 @@ int InitializeNodeWithArgs(std::vector<std::string>* argv,
    }
    per_process::metadata.versions.InitializeIntlVersions();
  #endif

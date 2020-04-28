@@ -111,6 +111,7 @@ int NodeMain(int argc, char* argv[]) {
     // We do not want to double-set the error level and promise rejection
     // callback.
     node::g_standalone_mode = false;
+    node::g_upstream_node_mode = true;
 
     // Explicitly register electron's builtin modules.
     NodeBindings::RegisterBuiltinModules();
